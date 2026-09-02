@@ -1,4 +1,4 @@
-import life_tracker
+import life_core
 
 def test_workout_parsing():
 
@@ -19,13 +19,13 @@ def test_workout_parsing():
 
     for line, output in good_cases:
         try:
-            result = life_tracker.parse_workout_line(line)
+            result = life_core.parse_workout_line(line)
             assert isinstance(result, dict), ("parse_workout_line" + repr(line) + "should return dict, got " + type(result).__name__)
         except Exception: 
             failures += 1
         
         try: 
-            result = life_tracker.parse_workout_line(line)
+            result = life_core.parse_workout_line(line)
             assert result == output, ("parse_workout_line" + repr(line) + "should return dict" + repr(output) + "instead returned" + repr(result))
         except Exception:
             failures += 1
@@ -33,7 +33,7 @@ def test_workout_parsing():
     for line in bad_cases:
 
         try:
-            result = life_tracker.parse_workout_line(line)
+            result = life_core.parse_workout_line(line)
 
             assert False,("This line(" + repr(line) + ") should not pass")
         

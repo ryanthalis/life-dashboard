@@ -72,5 +72,3 @@ if __name__ == "__main__":
         print(i["label"])
         print(i["quantity"])
         print(i["notes"])
-
-        
