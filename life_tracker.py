@@ -125,11 +125,12 @@ def get_summary(workouts, studies):
 def group_by_date(entries):
     grouped = {}
     for entry in entries:
-        date = entry.get("date")
+        date = entry["entry_date"]
         if date not in grouped:
             grouped[date] = []
         grouped[date].append(entry)
     return grouped
+
 
 def print_workouts_grouped(workouts):
     
@@ -144,8 +145,8 @@ def print_workouts_grouped(workouts):
         print(f"{date}")
         total_sets = 0
         for line, lifts in enumerate(grouped[date], start=1):
-            exercises = lifts.get("exercise") 
-            sets = lifts.get("sets")
+            exercises = lifts["label"] 
+            sets = lifts["quantity"]
             total_sets += int(sets)
             print(f"{line}. {exercises} {sets} sets")
         print(f"Total: {total_sets} sets")
@@ -163,8 +164,8 @@ def print_studies_grouped(studies):
         print(f"{date}")
         total_mins = 0
         for line, sesh in enumerate(grouped[date], start=1):
-            subjects = sesh.get("topic") 
-            mins = sesh.get("minutes")
+            subjects = sesh["label"] 
+            mins = sesh["quantity"] 
             total_mins += int(mins)
             print(f"{line}. {subjects} {mins} minutes")
         print(f"Total: {total_mins} minutes")
@@ -219,10 +220,14 @@ def main():
                     continue
             
                 elif option_workout_study == 1:
+                    workouts = db.get_entries("workout")
+
                     print_workouts_grouped(workouts)                
                     break
                 
                 elif option_workout_study == 2:
+                    studies = db.get_entries("study")
+
                     print_studies_grouped(studies)
                     break
                 
