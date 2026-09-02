@@ -1,7 +1,10 @@
 from life_core import parse_study_line, parse_workout_line
 from pathlib import Path
+import db
+
 BASE_DIR = Path(__file__).resolve().parent
 FILE_PATH = BASE_DIR / "data" / "entries.txt"
+
 
 workouts = []
 studies = []
@@ -167,7 +170,8 @@ def print_studies_grouped(studies):
         print(f"Total: {total_mins} minutes")
 
 
-def main():    
+def main():
+    db.init_db()
     load_from_file() 
 
     while True:
@@ -181,9 +185,12 @@ def main():
             date_value = input("Please enter the date of your workout (yyyy-mm-dd): ").strip()
             exercise_value = input("Please enter the exercise: ").strip()
             sets_value = get_int("Please enter the number of sets: ")
+            notes = input("please enter any relevant notes: ")
 
             workout = {"date": date_value, "exercise": exercise_value,  "sets": sets_value}
-            workouts.append(workout)
+
+            db.add_entry(date_value, "workout", exercise_value, sets_value, notes)
+
             print("workout added")
         
         elif option == 2:
