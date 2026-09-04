@@ -9,7 +9,8 @@ def menu():
     print("[3] View All Entries")
     print("[4] View Summary")
     print("[5] Update Entry")
-    print("[6] Exit")
+    print("[6] Delete Entry")
+    print("[7] Exit")
 
 def menu2():
     print("[1] View Workouts")
@@ -145,13 +146,31 @@ def get_date(prompt: str) -> str:
             print("Invalid format, enter date again")
             continue
 
+def get_confirmation(prompt: str) -> bool:
+
+    while True:
+
+        value = input(prompt).lower().strip()
+
+        if value == "y" or value == "yes":
+            return True
+
+        elif value == "n" or value == "no":
+            return False
+
+        else:
+            print("not a valid input try again:")
+            continue
+
+        
+
 def main():
     db.init_db()
 
     while True:
         print()
         menu()
-        option = get_int("please choose an option from between 1-6: ", 1, 6)
+        option = get_int("please choose an option from between 1-7: ", 1, 7)
         print()       
 
         if option == 1:
@@ -243,6 +262,34 @@ def main():
                 print("Entry could not be updated")
 
         elif option == 6:
+            entry_id = get_int("Enter ID of entry to be deleted: ")
+
+            row = db.get_entry(entry_id)
+
+            if row is None:
+                print("Entry not found")
+                continue
+
+            print(
+            f"Date: {row['entry_date']}, Category: {row['category']}, "
+            f"label: {row['label']}, Quantity: {row['quantity']}, "
+            f"Notes: {row['notes']}"
+            )
+
+            confirmation = get_confirmation("Enter y or yes to delete, or n or no to cancel")
+
+            if confirmation:
+                if db.delete_entry(entry_id):
+                    print("Entry deleted")
+                else:
+                    print("Entry could not be deleted")
+                continue
+
+            else:
+                print("Deletion cancelled")
+                continue
+
+        elif option == 7:
             print("You will now exit the program")
             break
 

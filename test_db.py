@@ -111,6 +111,32 @@ class DatabaseTests(unittest.TestCase):
         self.assertFalse(result)
         self.assertEqual(rows, [])
 
+    def test_delete_entry_removes_existing_entry(self):
+
+        db.add_entry("2026-01-23", "study", "Neuromechanical Matching", 35)
+        rows = db.get_entries("study")
+        data = rows[0]
+        original_id = data["id"]
+
+        self.assertEqual(len(rows), 1)
+
+        result = db.delete_entry(original_id)
+        self.assertTrue(result)
+        rows = db.get_entries("study")
+        self.assertEqual(len(rows), 0)
+
+        result2 = db.get_entry(original_id)
+        self.assertIsNone(result2)
+
+    def test_delete_entry_returns_false_for_missing_id(self):
+        result = db.delete_entry(999)
+
+        self.assertFalse(result)
+        self.assertIsNone(db.get_entry(999))
+
+
+
+
     def tearDown(self):
         db.FILE_PATH = self.original_path
         self.temp_dir.cleanup()
