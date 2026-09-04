@@ -1,14 +1,23 @@
 import sqlite3
+from contextlib import contextmanager
 from pathlib import Path
+
 
 BASE_DIR = Path(__file__).resolve().parent
 FILE_PATH = BASE_DIR / "life.db"
 
 
+@contextmanager
 def get_conn():
     db_connection = sqlite3.connect(FILE_PATH)
     db_connection.row_factory = sqlite3.Row
-    return db_connection
+
+    try:
+        with db_connection:
+            yield db_connection
+    finally:
+        db_connection.close()
+
 
 def init_db():
     with get_conn() as conn:
@@ -61,6 +70,7 @@ def get_entries(category: str):
         raise ValueError("category must be workout or study")
 
     return data
+
 
 def update_entry(
     entry_id: int,
