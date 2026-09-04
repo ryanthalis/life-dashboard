@@ -8,19 +8,24 @@ def menu():
     print("[2] Add Study")
     print("[3] View All Entries")
     print("[4] View Summary")
-    print("[5] Exit")
+    print("[5] Update Entry")
+    print("[6] Exit")
 
 def menu2():
-    print("[1] View Workouts")  
-    print("[2] View Study sessions")         
+    print("[1] View Workouts")
+    print("[2] View Study sessions")
 
-def get_int(prompt: str, min_value: int = 1, max_value: int | None = None,) -> int:
+
+def get_int(
+    prompt: str,
+    min_value: int = 1,
+    max_value: int | None = None,
+) -> int:
     while True:
-
         try:
             x = int(input(prompt).strip())
             print()
-        
+
             if x < min_value:
                 print(f"number has to be greater than or equal to {min_value}")
                 continue
@@ -35,7 +40,8 @@ def get_int(prompt: str, min_value: int = 1, max_value: int | None = None,) -> i
             continue
 
         return x
-    
+
+
 def get_summary(workouts, studies):
 
     total_workouts = 0
@@ -84,7 +90,8 @@ def print_workouts_grouped(workouts):
             exercises = lifts["label"] 
             sets = lifts["quantity"]
             total_sets += int(sets)
-            print(f"{line}. {exercises} {sets} sets")
+            entry_id = lifts["id"]
+            print(f"{line}. [ID {entry_id}] {exercises} {sets} sets")
         print(f"Total: {total_sets} sets")
 
 def print_studies_grouped(studies):
@@ -103,7 +110,10 @@ def print_studies_grouped(studies):
             subjects = sesh["label"] 
             mins = sesh["quantity"] 
             total_mins += int(mins)
-            print(f"{line}. {subjects} {mins} minutes")
+            entry_id = sesh["id"]
+
+            print(f"{line}. [ID {entry_id}] {subjects} {mins} minutes")
+
         print(f"Total: {total_mins} minutes")
 
 def get_nonempty(prompt: str) -> str:
@@ -141,7 +151,7 @@ def main():
     while True:
         print()
         menu()
-        option = get_int("please choose an option from between 1-5: ", 1, 5)
+        option = get_int("please choose an option from between 1-6: ", 1, 6)
         print()       
 
         if option == 1:
@@ -176,7 +186,9 @@ def main():
         
             while True:
 
-                option_workout_study = get_int("please choose an option from between 1-2: ", 1, 2)
+                option_workout_study = get_int(
+                    "please choose an option from between 1-2: ", 1, 2
+                )
             
                 if option_workout_study == 1:
                     workouts = db.get_entries("workout")
@@ -199,8 +211,38 @@ def main():
             a, b, c, d ,e = values
             print(f"total number of workouts: {a}\ntotal number of study sessions: {b}\ntotal number of sets: {c}\ntotal study minutes: {d}\ntopics studied: {e}")
                 
-
         elif option == 5:
+            entry_id = get_int("Enter ID of entry to be updated: ")
+            row = db.get_entry(entry_id)
+            if row is None:
+                print("Entry not found")
+                continue
+            print(
+                f"Date: {row['entry_date']}, Category: {row['category']}, "
+                f"label: {row['label']}, Quantity: {row['quantity']}, "
+                f"Notes: {row['notes']}"
+            )
+
+            new_date = get_date("Enter the new date (yyyy-mm-dd): ")
+            new_label = get_nonempty("Enter the new label: ")
+            new_quantity = get_int("Enter the new quantity: ")
+            new_notes = input("Enter the new notes: ").strip()
+
+            updated = db.update_entry(
+                entry_id,
+                new_date,
+                row["category"],
+                new_label,
+                new_quantity,
+                new_notes,
+            )
+
+            if updated:
+                print("Entry updated")
+            else:
+                print("Entry could not be updated")
+
+        elif option == 6:
             print("You will now exit the program")
             break
 

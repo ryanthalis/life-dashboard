@@ -2,7 +2,7 @@ import sqlite3
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent
-FILE_PATH = BASE_DIR / "life.db" 
+FILE_PATH = BASE_DIR / "life.db"
 
 
 def get_conn():
@@ -62,13 +62,44 @@ def get_entries(category: str):
 
     return data
 
-if __name__ == "__main__":
-    init_db()
-    data = get_entries("workout")
-    for i in data:
-        print(i["id"])
-        print(i["entry_date"])
-        print(i["category"])
-        print(i["label"])
-        print(i["quantity"])
-        print(i["notes"])
+def update_entry(
+    entry_id: int,
+    entry_date: str,
+    category: str,
+    label: str,
+    quantity: int,
+    notes: str = "",
+) -> bool:
+    with get_conn() as conn:
+        cursor = conn.execute(
+            """
+            UPDATE entries
+            SET
+                entry_date = ?,
+                category = ?,
+                label = ?,
+                quantity = ?,
+                notes = ?
+            WHERE id = ?
+            """,
+            (entry_date, category, label, quantity, notes, entry_id),
+        )
+        return cursor.rowcount == 1
+
+
+def get_entry(entry_id: int) -> sqlite3.Row | None:
+    with get_conn() as conn:
+        return conn.execute(
+            """
+            SELECT
+                id,
+                entry_date,
+                category,
+                label,
+                quantity,
+                notes
+            FROM entries
+            WHERE id = ?
+            """,
+            (entry_id,),
+        ).fetchone()
