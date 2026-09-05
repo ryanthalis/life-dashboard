@@ -21,19 +21,24 @@ def get_conn():
 
 def init_db():
     with get_conn() as conn:
-        conn.execute("""
-            CREATE TABLE IF NOT EXISTS entries (
+        conn.execute("""CREATE TABLE IF NOT EXISTS entries (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                entry_date TEXT NOT NULL,
-                category TEXT NOT NULL,
-                label TEXT NOT NULL,
-                quantity INTEGER,
+                entry_date TEXT NOT NULL CONSTRAINT valid_date CHECK (entry_date IS date(entry_date)),
+                category TEXT NOT NULL CHECK(category IN ('workout', 'study')),
+                label TEXT NOT NULL CHECK(trim(label) != ''),
+                quantity INTEGER NOT NULL CHECK(quantity > 0),
                 notes TEXT
-            );
+            )STRICT;
         """)
 
+        user_version = conn.execute("PRAGMA user_version").fetchone()[0]
 
-def add_entry(entry_date: str, category: str, label: str, quantity: int | None, notes: str = ""):
+        if user_version == 0:
+            migrate_v0_to_v1(conn)
+
+
+
+def add_entry(entry_date: str, category: str, label: str, quantity: int, notes: str = ""):
 
     with get_conn() as conn:
         conn.execute("""
@@ -120,3 +125,26 @@ def get_entry(entry_id: int) -> sqlite3.Row | None:
             """,
             (entry_id,),
         ).fetchone()
+
+def migrate_v0_to_v1(conn: sqlite3.Connection):
+
+    conn.execute("""ALTER TABLE entries RENAME TO entries_old;
+    """)
+    conn.execute("""CREATE TABLE IF NOT EXISTS entries (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                entry_date TEXT NOT NULL CONSTRAINT valid_date CHECK (entry_date IS date(entry_date)),
+                category TEXT NOT NULL CHECK(category IN ('workout', 'study')),
+                label TEXT NOT NULL CHECK(trim(label) != ''),
+                quantity INTEGER NOT NULL CHECK(quantity > 0),
+                notes TEXT
+            )STRICT;
+        """)
+    
+    conn.execute("""INSERT INTO entries (id, entry_date, category, label, quantity, notes)
+                SELECT id, entry_date, category, label, quantity, notes
+                FROM entries_old
+                """)
+    
+    conn.execute("""DROP TABLE entries_old;""")
+
+    conn.execute("PRAGMA user_version = 1")

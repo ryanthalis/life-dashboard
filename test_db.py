@@ -1,6 +1,7 @@
 import unittest
 import tempfile
 import os
+import sqlite3
 import db
 
 class DatabaseTests(unittest.TestCase):
@@ -134,9 +135,104 @@ class DatabaseTests(unittest.TestCase):
         self.assertFalse(result)
         self.assertIsNone(db.get_entry(999))
 
+    def test_add_entry_rejects_invalid_category(self):
 
+        with self.assertRaises(sqlite3.IntegrityError):
+            db.add_entry("2026-01-23", "minecraft", "Hypixel skywars", 1500)
 
+    def test_add_entry_rejects_zero_quantity(self):
+        
+        with self.assertRaises(sqlite3.IntegrityError):
+            db.add_entry("2026-01-23", "study", "Effects or Erdafitnib on growth plates through fgr3 pathways", 0)
+
+    def test_add_entry_rejects_empty_label(self):
+
+        with self.assertRaises(sqlite3.IntegrityError):
+            db.add_entry("2026-01-23", "study", "", 2)
+        
+    def test_add_entry_rejects_incorrect_date(self):
+
+        with self.assertRaises(sqlite3.IntegrityError):
+            db.add_entry("abcd-sd-fg", "study", "Does wolfe's law apply to facial bones or is it just fibrosis", 2)
+
+    def test_add_entry_rejects_missing_quantity(self):
+
+        with self.assertRaises(sqlite3.IntegrityError):
+            db.add_entry("2026-01-23", "study", "Effects or Erdafitnib on growth plates through fgr3 pathways", None)
+
+    
+    def test_add_entry_rejects_wrong_quantity_type(self):
+
+        with self.assertRaises(sqlite3.IntegrityError):
+            db.add_entry("2026-01-23", "study", "Effects or Erdafitnib on growth plates through fgr3 pathways", "two")
 
     def tearDown(self):
         db.FILE_PATH = self.original_path
         self.temp_dir.cleanup()
+
+
+class MigrationTests(unittest.TestCase):
+
+    def setUp(self):
+
+        self.tempdir = tempfile.TemporaryDirectory()
+        self.file_path = os.path.join(self.tempdir.name, "migrationtest.db")
+        self.original_path = db.FILE_PATH
+        db.FILE_PATH = self.file_path
+
+        with db.get_conn() as db_connection:
+
+            db_connection.execute("""
+                CREATE TABLE IF NOT EXISTS entries (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    entry_date TEXT NOT NULL,
+                    category TEXT NOT NULL,
+                    label TEXT NOT NULL,
+                    quantity INTEGER,
+                    notes TEXT
+                );
+                """)
+
+        db.add_entry("2026-01-23", "study", "Neuromechanical Matching", 35)
+        self.original_id = db.get_entries("study")[0]["id"]
+
+    def test_init_db_migrates_legacy_database(self):
+
+        db.init_db()
+        db.init_db()
+
+        row = db.get_entries("study")
+        data = row[0]
+
+        with db.get_conn() as conn:
+            user_version = conn.execute("PRAGMA user_version").fetchone()[0]
+            old_table = conn.execute(
+                """
+                SELECT 1
+                FROM sqlite_master
+                WHERE type = 'table' AND name = 'entries_old'
+                """
+            ).fetchone()
+
+        self.assertEqual(len(row), 1)
+        self.assertEqual(self.original_id, data["id"])
+        self.assertEqual("2026-01-23", data["entry_date"])
+        self.assertEqual("study", data["category"])
+        self.assertEqual("Neuromechanical Matching", data["label"])
+        self.assertEqual(35, data["quantity"])
+        self.assertEqual("", data["notes"])
+        self.assertEqual(1, user_version)
+        self.assertIsNone(old_table)
+
+        
+        with self.assertRaises(sqlite3.IntegrityError):
+            db.add_entry("2026-01-23", "study", "Effects or Erdafitnib on growth plates through fgr3 pathways", "two")
+        
+            
+    
+    def tearDown(self):
+        db.FILE_PATH = self.original_path
+        self.tempdir.cleanup()
+
+
+        
