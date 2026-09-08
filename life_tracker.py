@@ -1,5 +1,6 @@
 import db
 import datetime as dt
+import sqlite3
 
 
 
@@ -162,7 +163,121 @@ def get_confirmation(prompt: str) -> bool:
             print("not a valid input try again:")
             continue
 
+def print_entry(entry: sqlite3.Row):
+    print(
+        f"Date: {entry['entry_date']}, Category: {entry['category']}, "
+        f"label: {entry['label']}, Quantity: {entry['quantity']}, "
+        f"Notes: {entry['notes']}"
+        )
+    
+def handle_add_workout() -> None:
+    print("You have chosen to log a workout")
+    date_value = get_date("Please enter the date of your workout (yyyy-mm-dd): ")
+    exercise_value = get_nonempty("Please enter the exercise: ")
+    sets_value = get_int("Please enter the number of sets: ")
+    notes = input("please enter any relevant notes: ")
+
+    db.add_entry(date_value, "workout", exercise_value, sets_value, notes)
+
+    print("workout added")
+
+def handle_view_entries() -> None:
+    print()
+    print("You have chosen to view all entries")
+    print()
+    menu2()
+    option_workout_study = 0
+
+    while True:
+
+        option_workout_study = get_int(
+            "please choose an option from between 1-2: ", 1, 2
+        )
+    
+        if option_workout_study == 1:
+            workouts = db.get_entries("workout")
+
+            print_workouts_grouped(workouts)                
+            break
         
+        elif option_workout_study == 2:
+            studies = db.get_entries("study")
+
+            print_studies_grouped(studies)
+            break
+
+
+def handle_add_study() -> None:
+    print("You have chosen to log a study session")
+    study_date = get_date("Please enter the date of your study session (yyyy-mm-dd): ")
+    study_subject = get_nonempty("Please enter the subject of study: ")
+    study_minutes = get_int("Please enter how long you studied for in minutes")
+    notes = input("please enter any relevant notes: ")
+
+    db.add_entry(study_date, "study", study_subject, study_minutes, notes)
+
+    print("study session added ")
+
+
+def handle_view_summary() -> None:
+    workouts = db.get_entries("workout")
+    studies = db.get_entries("study")
+
+    values = get_summary(workouts, studies)
+    a, b, c, d, e = values
+    print(f"total number of workouts: {a}\ntotal number of study sessions: {b}\ntotal number of sets: {c}\ntotal study minutes: {d}\ntopics studied: {e}")
+
+def handle_update_entry() -> None:
+    entry_id = get_int("Enter ID of entry to be updated: ")
+    row = db.get_entry(entry_id)
+    if row is None:
+        print("Entry not found")
+        return
+
+    print_entry(row)
+
+    new_date = get_date("Enter the new date (yyyy-mm-dd): ")
+    new_label = get_nonempty("Enter the new label: ")
+    new_quantity = get_int("Enter the new quantity: ")
+    new_notes = input("Enter the new notes: ").strip()
+
+    updated = db.update_entry(
+        entry_id,
+        new_date,
+        row["category"],
+        new_label,
+        new_quantity,
+        new_notes,
+    )
+
+    if updated:
+        print("Entry updated")
+    else:
+        print("Entry could not be updated")
+
+
+def handle_delete_entry() -> None:
+    entry_id = get_int("Enter ID of entry to be deleted: ")
+
+    row = db.get_entry(entry_id)
+
+    if row is None:
+        print("Entry not found")
+        return
+
+    print_entry(row)
+
+    confirmation = get_confirmation("Enter y or yes to delete, or n or no to cancel")
+
+    if not confirmation:
+        print("Deletion cancelled")
+        return
+
+    if db.delete_entry(entry_id):
+        print("Entry deleted")
+    else:
+        print("Entry could not be deleted")
+
 
 def main():
     db.init_db()
@@ -174,120 +289,23 @@ def main():
         print()       
 
         if option == 1:
-            print("You have chosen to log a workout")
-            date_value = get_date("Please enter the date of your workout (yyyy-mm-dd): ")
-            exercise_value = get_nonempty("Please enter the exercise: ")
-            sets_value = get_int("Please enter the number of sets: ")
-            notes = input("please enter any relevant notes: ")
-
-            db.add_entry(date_value, "workout", exercise_value, sets_value, notes)
-
-            print("workout added")
-        
+            handle_add_workout()
+            
         elif option == 2:
-            print("You have chosen to log a study session")
-            study_date = get_date("Please enter the date of your study session (yyyy-mm-dd): ")
-            study_subject = get_nonempty("Please enter the subject of study: ")
-            study_minutes = get_int("Please enter how long you studied for in minutes")
-            notes = input("please enter any relevant notes: ")
-
-
-            db.add_entry(study_date, "study", study_subject, study_minutes, notes)
-
-            print("study session added ")
+            handle_add_study()
         
         elif option == 3:
-            print()
-            print("You have chosen to view all entries")
-            print()
-            menu2()
-            option_workout_study = 0
-        
-            while True:
-
-                option_workout_study = get_int(
-                    "please choose an option from between 1-2: ", 1, 2
-                )
-            
-                if option_workout_study == 1:
-                    workouts = db.get_entries("workout")
-
-                    print_workouts_grouped(workouts)                
-                    break
-                
-                elif option_workout_study == 2:
-                    studies = db.get_entries("study")
-
-                    print_studies_grouped(studies)
-                    break
-                
+            handle_view_entries()
+                 
 
         elif option == 4:
-            workouts = db.get_entries("workout")
-            studies = db.get_entries("study")
-
-            values = get_summary(workouts, studies)
-            a, b, c, d ,e = values
-            print(f"total number of workouts: {a}\ntotal number of study sessions: {b}\ntotal number of sets: {c}\ntotal study minutes: {d}\ntopics studied: {e}")
+            handle_view_summary()
                 
         elif option == 5:
-            entry_id = get_int("Enter ID of entry to be updated: ")
-            row = db.get_entry(entry_id)
-            if row is None:
-                print("Entry not found")
-                continue
-            print(
-                f"Date: {row['entry_date']}, Category: {row['category']}, "
-                f"label: {row['label']}, Quantity: {row['quantity']}, "
-                f"Notes: {row['notes']}"
-            )
-
-            new_date = get_date("Enter the new date (yyyy-mm-dd): ")
-            new_label = get_nonempty("Enter the new label: ")
-            new_quantity = get_int("Enter the new quantity: ")
-            new_notes = input("Enter the new notes: ").strip()
-
-            updated = db.update_entry(
-                entry_id,
-                new_date,
-                row["category"],
-                new_label,
-                new_quantity,
-                new_notes,
-            )
-
-            if updated:
-                print("Entry updated")
-            else:
-                print("Entry could not be updated")
+            handle_update_entry()
 
         elif option == 6:
-            entry_id = get_int("Enter ID of entry to be deleted: ")
-
-            row = db.get_entry(entry_id)
-
-            if row is None:
-                print("Entry not found")
-                continue
-
-            print(
-            f"Date: {row['entry_date']}, Category: {row['category']}, "
-            f"label: {row['label']}, Quantity: {row['quantity']}, "
-            f"Notes: {row['notes']}"
-            )
-
-            confirmation = get_confirmation("Enter y or yes to delete, or n or no to cancel")
-
-            if confirmation:
-                if db.delete_entry(entry_id):
-                    print("Entry deleted")
-                else:
-                    print("Entry could not be deleted")
-                continue
-
-            else:
-                print("Deletion cancelled")
-                continue
+            handle_delete_entry()
 
         elif option == 7:
             print("You will now exit the program")

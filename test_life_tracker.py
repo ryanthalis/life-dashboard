@@ -163,5 +163,66 @@ class DeleteWorkflowTests(unittest.TestCase):
         mock_print.assert_any_call("Entry not found")
 
 
+class HandlerTests(unittest.TestCase):
+
+    def test_handle_add_workout_sends_values_to_database(self):
+        with patch("builtins.input", return_value="deload"):
+            with patch("builtins.print") as mock_print:
+                with patch.object(life_tracker, "get_date", return_value="2026-09-08"):
+                    with patch.object(life_tracker, "get_nonempty", return_value="Bench"):
+                        with patch.object(life_tracker, "get_int", return_value=4):
+                            with patch.object(life_tracker.db,"add_entry",) as mock_add_entry:
+                                life_tracker.handle_add_workout()
+
+        mock_add_entry.assert_called_once_with("2026-09-08", "workout", "Bench", 4, "deload",)
+        mock_print.assert_any_call("You have chosen to log a workout")
+
+    def test_handle_add_study_sends_values_to_database(self):
+
+        with patch("builtins.input", return_value="new session"):
+            with patch("builtins.print") as mock_print:
+                with patch.object(life_tracker, "get_date", return_value="2026-09-08"):
+                    with patch.object(life_tracker, "get_nonempty", return_value="Programming"):
+                        with patch.object(life_tracker, "get_int", return_value=4):
+                            with patch.object(life_tracker.db, "add_entry",) as mock_add_entry:
+                                life_tracker.handle_add_study()
+
+        mock_add_entry.assert_called_once_with("2026-09-08", "study", "Programming", 4, "new session",)
+        mock_print.assert_any_call("You have chosen to log a study session")
+
+    def test_handle_update_entry_sends_new_values_to_database(self):
+        existing_entry = {
+            "id": 42,
+            "entry_date": "2026-09-01",
+            "category": "study",
+            "label": "Old topic",
+            "quantity": 20,
+            "notes": "Old notes",
+        }
+
+        with patch("builtins.input", return_value="Updated notes"):
+            with patch("builtins.print") as mock_print:
+                with patch.object(life_tracker, "get_int", side_effect=[42, 5]):
+                    with patch.object(life_tracker, "get_date", return_value="2026-09-08"):
+                        with patch.object(life_tracker, "get_nonempty", return_value="Updated topic"):
+                            with patch.object(life_tracker.db, "get_entry", return_value=existing_entry) as mock_get_entry:
+                                with patch.object(life_tracker.db, "update_entry", return_value=True) as mock_update_entry:
+                                    life_tracker.handle_update_entry()
+
+        mock_get_entry.assert_called_once_with(42)
+        mock_update_entry.assert_called_once_with(42, "2026-09-08", "study", "Updated topic", 5, "Updated notes",)
+        mock_print.assert_any_call("Entry updated")
+
+    def test_handle_update_entry_returns_for_missing_id(self):
+        with patch("builtins.print") as mock_print:
+            with patch.object(life_tracker, "get_int", return_value=999):
+                with patch.object(life_tracker.db, "get_entry", return_value=None) as mock_get_entry:
+                    with patch.object(life_tracker.db, "update_entry") as mock_update_entry:
+                        life_tracker.handle_update_entry()
+
+        mock_get_entry.assert_called_once_with(999)
+        mock_update_entry.assert_not_called()
+        mock_print.assert_any_call("Entry not found")
+
 if __name__ == "__main__":
     unittest.main()
