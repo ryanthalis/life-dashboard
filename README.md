@@ -1,43 +1,90 @@
-# Life Dashboard
+# Life Dashboard V2
 
-A command-line Python application for tracking workouts and study sessions.
+[![Tests](https://github.com/ryanthalis/life-dashboard/actions/workflows/tests.yml/badge.svg)](https://github.com/ryanthalis/life-dashboard/actions/workflows/tests.yml)
+
+Life Dashboard V2 is a Python application for tracking workout and study sessions. Entries are stored in SQLite and can be managed through either an interactive command-line interface or a validated FastAPI REST API.
 
 ## Features
-- Log workouts (date, exercise, sets)
-- Log study sessions (date, topic, minutes)
-- View all entries grouped by date
-- View daily totals for workouts and study time
-- Automatically saves and loads data from a local file
 
-## How to Run
+- Create, view, update, and delete workout and study entries
+- Store entries in a constrained SQLite database
+- Filter API results by workout or study category
+- Validate API request and response data with Pydantic
+- Migrate legacy database schemas automatically
+- Test database, CLI, migration, and API behavior with `unittest`
 
-1. Clone the repository
-2. Navigate to the project directory
-3. Run the program using Python:
+## Setup
 
-```bash
+Python 3.13 or newer is recommended.
+
+```powershell
+git clone https://github.com/ryanthalis/life-dashboard.git
+cd life-dashboard
+py -3.13 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+```
+
+## Run the CLI
+
+```powershell
 python life_tracker.py
+```
 
+The CLI initializes `life.db` automatically and presents a menu for managing entries and viewing summaries.
 
-## Example Output
+## Run the API
 
-2025-11-23
-  1. Kelso Shrug — 2 sets
-  2. Incline Press — 3 sets
-  Total: 5 sets
+Initialize the database once if the CLI has not been run:
 
-2025-11-24
-  1. Unilateral Calf Raise — 3 sets
-  2. Stiff-Leg Deadlift — 1 set
-  Total: 4 sets
+```powershell
+python -c "import db; db.init_db()"
+```
 
-## Design Decisions
-- Data is stored in a local text file to keep the project simple and portable.
-- Entries are grouped by date to improve readability and make daily activity easier to review.
-- Helper functions are used to separate data processing from user interface logic.
-- The program automatically creates required data files to reduce setup friction.
+Start the development server:
 
-## Future Improvements
-- Replace text file storage with SQLite for more robust data management.
-- Add filtering by date range (weekly or monthly summaries).
-- Add summary statistics per exercise or study topic.
+```powershell
+fastapi dev api.py
+```
+
+Open the interactive API documentation at [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs).
+
+## API Endpoints
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `GET` | `/` | Check that the API is running |
+| `GET` | `/entries` | List all entries |
+| `GET` | `/entries?category=study` | Filter entries by category |
+| `GET` | `/entries/{entry_id}` | Retrieve one entry |
+| `POST` | `/entries` | Create an entry |
+| `PATCH` | `/entries/{entry_id}` | Update selected fields |
+| `DELETE` | `/entries/{entry_id}` | Delete an entry |
+
+Example POST body:
+
+```json
+{
+  "entry_date": "2026-09-09",
+  "category": "study",
+  "label": "FastAPI",
+  "quantity": 30,
+  "notes": "Response models"
+}
+```
+
+## Run the Tests
+
+```powershell
+python -m unittest -v
+```
+
+Tests use temporary databases and do not modify the local `life.db` file.
+
+## Local Files
+
+The SQLite database, virtual environment, Python cache files, and DB Browser workspace files are ignored by Git. Each developer keeps their own local `life.db` data.
+
+## Roadmap
+
+A browser-based frontend is planned as the likely next stage of Life Dashboard.
