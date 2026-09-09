@@ -47,14 +47,29 @@ def add_entry(entry_date: str, category: str, label: str, quantity: int, notes: 
         """, (entry_date, category, label, quantity, notes))
 
 
-def get_entries(category: str):
+def get_entries(category: str | None = None):
 
     data = []
 
-    if category in ("workout", "study"):
+    if category is None:
+        with get_conn() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""SELECT
+                                *
+                                FROM
+                                    entries
+                                ORDER BY
+                                    entry_date DESC, 
+                                    id DESC
+                                """)
+            data = cursor.fetchall()
+
+
+    elif category in ("workout", "study"):
 
         with get_conn() as conn:
             cursor = conn.cursor()
+    
             cursor.execute("""SELECT
                                 id,
                                 entry_date,
@@ -72,7 +87,8 @@ def get_entries(category: str):
             
             data = cursor.fetchall()
     else:
-        raise ValueError("category must be workout or study")
+        raise ValueError("category must be workout or study")    
+    
 
     return data
 

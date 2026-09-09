@@ -3,3 +3,4 @@ data/
 desktop.ini
 life.db
 *.sqbpro
+.venv/
