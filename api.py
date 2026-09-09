@@ -3,10 +3,15 @@ from typing import Annotated, Literal
 from pydantic import BaseModel, Field, StringConstraints
 from datetime import date
 import db
+from contextlib import asynccontextmanager
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    db.init_db()
+    yield
     
 
-app = FastAPI()
+app = FastAPI(lifespan=lifespan)
 
 class EntryCreate(BaseModel):
     entry_date: date

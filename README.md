@@ -35,17 +35,13 @@ The CLI initializes `life.db` automatically and presents a menu for managing ent
 
 ## Run the API
 
-Initialize the database once if the CLI has not been run:
-
-```powershell
-python -c "import db; db.init_db()"
-```
-
 Start the development server:
 
 ```powershell
 fastapi dev api.py
 ```
+
+The API creates or migrates `life.db` automatically when the server starts.
 
 Open the interactive API documentation at [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs).
 
