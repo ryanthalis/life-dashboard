@@ -38,13 +38,16 @@ def init_db():
 
 
 
-def add_entry(entry_date: str, category: str, label: str, quantity: int, notes: str = ""):
+def add_entry(entry_date: str, category: str, label: str, quantity: int, notes: str = "") -> int:
 
     with get_conn() as conn:
-        conn.execute("""
+        cursor = conn.cursor()
+        cursor.execute("""
             INSERT INTO entries (entry_date, category, label, quantity, notes)
             VALUES (?, ?, ?, ?, ?);
         """, (entry_date, category, label, quantity, notes))
+
+        return cursor.lastrowid
 
 
 def get_entries(category: str | None = None):
