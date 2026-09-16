@@ -22,13 +22,13 @@ git clone https://github.com/ryanthalis/life-dashboard.git
 cd life-dashboard
 py -3.13 -m venv .venv
 .\.venv\Scripts\Activate.ps1
-python -m pip install -r requirements.txt
+python -m pip install -r server/requirements.txt
 ```
 
 ## Run the CLI
 
 ```powershell
-python life_tracker.py
+python server/life_tracker.py
 ```
 
 The CLI initializes `life.db` automatically and presents a menu for managing entries and viewing summaries.
@@ -38,7 +38,7 @@ The CLI initializes `life.db` automatically and presents a menu for managing ent
 Start the development server:
 
 ```powershell
-fastapi dev api.py
+fastapi dev server/api.py
 ```
 
 The API creates or migrates `life.db` automatically when the server starts.
@@ -72,10 +72,15 @@ Example POST body:
 ## Run the Tests
 
 ```powershell
-python -m unittest -v
+python -m unittest discover -s server -v
 ```
 
 Tests use temporary databases and do not modify the local `life.db` file.
+
+## Project Structure
+
+- `server/` contains the FastAPI application, CLI, database code, backend tests, and Python dependencies.
+- `client/` is reserved for the browser-based frontend.
 
 ## Local Files
 
