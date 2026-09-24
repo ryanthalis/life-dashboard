@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="style.css" />
+    <title>Life Dashboard</title>
+  </head>
+  <body>
+    <header>
+      <h1>Welcome to Life Dashboard</h1>
+    </header>
+
+    <main class="dashboard">
+      <div class="summary-grid">
+        <section class="card summary-card workout-card" aria-labelledby="workout-entries-heading">
+          <h2 id="workout-entries-heading">Workout Entries</h2>
+          <ul>
+            <li>Upper-body workout</li>
+            <li>Lower-body workout</li>
+            <li>Cardio workout</li>
+          </ul>
+        </section>
+
+        <section class="card summary-card study-card" aria-labelledby="study-entries-heading">
+          <h2 id="study-entries-heading">Study Entries</h2>
+          <ul>
+            <li>FastAPI study session</li>
+            <li>HTML study session</li>
+            <li>Python study session</li>
+          </ul>
+        </section>
+      </div>
+
+      <section class="card add-entry-card" aria-labelledby="add-entry-heading">
+        <h2 id="add-entry-heading">Add Entry</h2>
+        <form id="entry-form">
+          <div class="form-field">
+            <label for="entry-date">Entry date</label>
+            <input type="date" name="entry_date" id="entry-date" required>
+          </div>
+          <div class="form-field">
+            <label for="category">Category</label>
+            <select name="category" id="category" required>
+              <option value="">Choose a category</option>
+              <option value="workout">Workout</option>
+              <option value="study">Study</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label for="entry-label">Label</label>
+            <input type="text" name="label" id="entry-label" required>
+          </div>
+          <div class="form-field">
+            <label for="quantity">Quantity</label>
+            <input type="number" name="quantity" id="quantity" min="1" step="1" required>
+          </div>
+          <div class="form-field">
+            <label for="notes">Notes</label>
+            <textarea name="notes" id="notes"></textarea>
+          </div>
+          <button type="submit">Add entry</button>
+        </form>
+      </section>
+
+      <section class="card recent-entries-card" aria-labelledby="recent-entries-heading">
+        <h2 id="recent-entries-heading">Recent Entries</h2>
+        <div class="table-wrapper">
+          <table>
+            <caption>Most recent workout and study entries</caption>
+            <thead>
+              <tr>
+                <th scope="col">ID</th>
+                <th scope="col">Entry Date</th>
+                <th scope="col">Category</th>
+                <th scope="col">Label</th>
+                <th scope="col">Quantity</th>
+                <th scope="col">Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">1</th>
+                <td>2026-07-01</td>
+                <td>Workout</td>
+                <td>Upper</td>
+                <td>50</td>
+                <td>It was a lot of fun</td>
+              </tr>
+              <tr>
+                <th scope="row">2</th>
+                <td>2026-07-02</td>
+                <td>Workout</td>
+                <td>Lower</td>
+                <td>69</td>
+                <td>It was kinda fun</td>
+              </tr>
+              <tr>
+                <th scope="row">3</th>
+                <td>2026-07-03</td>
+                <td>Study</td>
+                <td>Minecraft</td>
+                <td>25</td>
+                <td>It was not fun</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
