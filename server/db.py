@@ -147,6 +147,8 @@ def get_entry(entry_id: int) -> sqlite3.Row | None:
 
 def migrate_v0_to_v1(conn: sqlite3.Connection):
 
+    conn.execute("BEGIN IMMEDIATE")
+
     conn.execute("""ALTER TABLE entries RENAME TO entries_old;
     """)
     conn.execute("""CREATE TABLE IF NOT EXISTS entries (

@@ -229,6 +229,32 @@ class MigrationTests(unittest.TestCase):
         
         with self.assertRaises(sqlite3.IntegrityError):
             db.add_entry("2026-01-23", "study", "Effects or Erdafitnib on growth plates through fgr3 pathways", "two")
+
+    def test_failed_migration_rolls_back_all_schema_changes(self):
+        db.add_entry("not-a-date", "invalid", "Invalid legacy entry", 0)
+
+        with self.assertRaises(sqlite3.IntegrityError):
+            db.init_db()
+
+        with db.get_conn() as conn:
+            entries = conn.execute(
+                "SELECT entry_date, category, label, quantity FROM entries ORDER BY id"
+            ).fetchall()
+            old_table = conn.execute(
+                """
+                SELECT 1
+                FROM sqlite_master
+                WHERE type = 'table' AND name = 'entries_old'
+                """
+            ).fetchone()
+            user_version = conn.execute("PRAGMA user_version").fetchone()[0]
+
+        self.assertEqual(len(entries), 2)
+        self.assertEqual(entries[1]["entry_date"], "not-a-date")
+        self.assertEqual(entries[1]["category"], "invalid")
+        self.assertEqual(entries[1]["quantity"], 0)
+        self.assertIsNone(old_table)
+        self.assertEqual(user_version, 0)
         
             
     
