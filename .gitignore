@@ -5,3 +5,5 @@ life.db
 *.sqbpro
 .venv/
 tmp/
+.learning/
+.env
