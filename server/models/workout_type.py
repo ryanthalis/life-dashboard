@@ -1,6 +1,9 @@
+from datetime import datetime
+
 from sqlalchemy import (
     BigInteger,
     CheckConstraint,
+    DateTime,
     ForeignKey,
     Identity,
     Index,
@@ -26,6 +29,7 @@ class WorkoutType(Base):
         ForeignKey("users.user_id", ondelete="CASCADE"),
     )
     name: Mapped[str] = mapped_column(Text)
+    archived_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     __table_args__ = (
         CheckConstraint(
